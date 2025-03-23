@@ -33,7 +33,10 @@ def create_http_request(host, path):
         f"\r\n"
     )
 
-def make_http_request(url):
+def make_http_request(url, max_redirects=5):
+    if max_redirects == 0:
+        raise Exception("Too many redirects")
+        
     parsed_url = parse_url(url)
     host = parsed_url.netloc
     path = parsed_url.path or '/'
@@ -53,9 +56,20 @@ def make_http_request(url):
             response += data
             
         sock.close()
+        
         decoded_response = response.decode('utf-8', errors='ignore')
+        status_line = decoded_response.split('\n')[0]
+        status_code = int(status_line.split()[1])
+        
+        if status_code in (301, 302, 303, 307):
+            for line in decoded_response.split('\n'):
+                if line.lower().startswith('location:'):
+                    new_url = line.split(':', 1)[1].strip()
+                    print(f"Redirecting to: {new_url}")
+                    return make_http_request(new_url, max_redirects - 1)
+        
         clean_content = parse_http_response(decoded_response)
-        print(clean_content)
+        return clean_content
         
     except Exception as e:
         print(f"Error: {e}")
