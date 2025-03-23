@@ -1,7 +1,20 @@
 import argparse
+import socket
+from urllib.parse import urlparse
+
+def parse_url(url):
+    parsed = urlparse(url)
+    if not parsed.scheme:
+        url = 'http://' + url
+        parsed = urlparse(url)
+    return parsed
 
 def make_http_request(url):
-    print(f"Making request to: {url}")
+    parsed_url = parse_url(url)
+    host = parsed_url.netloc
+    path = parsed_url.path or '/'
+    
+    print(f"Connecting to: {host}, Path: {path}")
 
 def search_term(term):
     print(f"Searching for: {term}")
