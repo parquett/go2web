@@ -2,6 +2,7 @@ import argparse
 import socket
 import re
 from urllib.parse import urlparse
+import json
 
 def remove_html_tags(text):
     clean = re.compile('<.*?>')
@@ -13,9 +14,23 @@ def parse_http_response(response):
         return "No content found"
     
     headers, body = parts
-    clean_body = remove_html_tags(body)
-    clean_body = '\n'.join(line.strip() for line in clean_body.splitlines() if line.strip())
-    return clean_body
+    
+    content_type = 'text/html' 
+    for line in headers.split('\r\n'):
+        if line.lower().startswith('content-type:'):
+            content_type = line.split(':', 1)[1].strip().lower()
+            break
+    
+    if 'application/json' in content_type:
+        try:
+            parsed_json = json.loads(body)
+            return json.dumps(parsed_json, indent=2)
+        except:
+            return body
+    else:
+        clean_body = remove_html_tags(body)
+        clean_body = '\n'.join(line.strip() for line in clean_body.splitlines() if line.strip())
+        return clean_body
 
 def parse_url(url):
     parsed = urlparse(url)
@@ -30,6 +45,7 @@ def create_http_request(host, path):
         f"Host: {host}\r\n"
         f"Connection: close\r\n"
         f"User-Agent: go2web/1.0\r\n"
+        f"Accept: text/html,application/json\r\n"
         f"\r\n"
     )
 
