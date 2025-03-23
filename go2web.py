@@ -61,7 +61,8 @@ def make_http_request(url):
         print(f"Error: {e}")
 
 def search_term(term):
-    print(f"Searching for: {term}")
+    search_url = f"duckduckgo.com/html/?q={term.replace(' ', '+')}"
+    make_http_request(search_url)
 
 def main():
     parser = argparse.ArgumentParser(
