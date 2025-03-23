@@ -1,6 +1,21 @@
 import argparse
 import socket
+import re
 from urllib.parse import urlparse
+
+def remove_html_tags(text):
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', text)
+
+def parse_http_response(response):
+    parts = response.split('\r\n\r\n', 1)
+    if len(parts) < 2:
+        return "No content found"
+    
+    headers, body = parts
+    clean_body = remove_html_tags(body)
+    clean_body = '\n'.join(line.strip() for line in clean_body.splitlines() if line.strip())
+    return clean_body
 
 def parse_url(url):
     parsed = urlparse(url)
@@ -38,7 +53,9 @@ def make_http_request(url):
             response += data
             
         sock.close()
-        print(response.decode('utf-8', errors='ignore'))
+        decoded_response = response.decode('utf-8', errors='ignore')
+        clean_content = parse_http_response(decoded_response)
+        print(clean_content)
         
     except Exception as e:
         print(f"Error: {e}")
