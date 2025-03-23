@@ -9,12 +9,39 @@ def parse_url(url):
         parsed = urlparse(url)
     return parsed
 
+def create_http_request(host, path):
+    return (
+        f"GET {path} HTTP/1.1\r\n"
+        f"Host: {host}\r\n"
+        f"Connection: close\r\n"
+        f"User-Agent: go2web/1.0\r\n"
+        f"\r\n"
+    )
+
 def make_http_request(url):
     parsed_url = parse_url(url)
     host = parsed_url.netloc
     path = parsed_url.path or '/'
     
-    print(f"Connecting to: {host}, Path: {path}")
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((host, 80))
+        
+        request = create_http_request(host, path)
+        sock.send(request.encode())
+        
+        response = b''
+        while True:
+            data = sock.recv(4096)
+            if not data:
+                break
+            response += data
+            
+        sock.close()
+        print(response.decode('utf-8', errors='ignore'))
+        
+    except Exception as e:
+        print(f"Error: {e}")
 
 def search_term(term):
     print(f"Searching for: {term}")
