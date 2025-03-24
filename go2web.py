@@ -3,6 +3,7 @@ import socket
 import re
 from urllib.parse import urlparse
 import json
+import ssl
 
 def remove_html_tags(text):
     text = re.sub(r'<style[^>]*>[\s\S]*?</style>', '', text)
@@ -61,11 +62,17 @@ def make_http_request(url, max_redirects=5):
     parsed_url = parse_url(url)
     host = parsed_url.netloc
     path = parsed_url.path or '/'
-    
+    port = 443 if parsed_url.scheme == 'https' else 80
+
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((host, 80))
-        
+
+        if parsed_url.scheme == 'https':
+            context = ssl.create_default_context()
+            sock = context.wrap_socket(sock, server_hostname=host)
+
+        sock.connect((host, port))
+
         request = create_http_request(host, path)
         sock.send(request.encode())
         
@@ -97,7 +104,7 @@ def make_http_request(url, max_redirects=5):
 
 def search_term(term):
     search_url = f"duckduckgo.com/html/?q={term.replace(' ', '+')}"
-    make_http_request(search_url)
+    return make_http_request(search_url)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -111,9 +118,9 @@ def main():
     args = parser.parse_args()
     
     if args.url:
-        make_http_request(args.url)
+        print(make_http_request(args.url))
     elif args.search:
-        search_term(args.search)
+        print(search_term(args.search))
 
 if __name__ == "__main__":
     main() 
