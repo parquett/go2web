@@ -5,8 +5,12 @@ from urllib.parse import urlparse
 import json
 
 def remove_html_tags(text):
-    clean = re.compile('<.*?>')
-    return re.sub(clean, '', text)
+    text = re.sub(r'<style[^>]*>[\s\S]*?</style>', '', text)
+    text = re.sub(r'<script[^>]*>[\s\S]*?</script>', '', text)
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'\s+', ' ', text)
+    text = text.strip()
+    return text
 
 def parse_http_response(response):
     parts = response.split('\r\n\r\n', 1)
@@ -29,8 +33,9 @@ def parse_http_response(response):
             return body
     else:
         clean_body = remove_html_tags(body)
-        clean_body = '\n'.join(line.strip() for line in clean_body.splitlines() if line.strip())
-        return clean_body
+        paragraphs = [p.strip() for p in clean_body.split('\n\n') if p.strip()]
+        formatted_text = '\n\n'.join(paragraphs)
+        return formatted_text
 
 def parse_url(url):
     parsed = urlparse(url)
