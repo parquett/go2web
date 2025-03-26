@@ -55,9 +55,14 @@ def create_http_request(host, path):
         f"\r\n"
     )
 
+cache = {}
+
 def make_http_request(url, max_redirects=5):
     if max_redirects == 0:
         raise Exception("Too many redirects")
+    
+    if url in cache:
+        return cache[url]
         
     parsed_url = parse_url(url)
     host = parsed_url.netloc
@@ -97,6 +102,9 @@ def make_http_request(url, max_redirects=5):
                     return make_http_request(new_url, max_redirects - 1)
         
         clean_content = parse_http_response(decoded_response)
+        
+        cache[url] = clean_content
+            
         return clean_content
         
     except Exception as e:
