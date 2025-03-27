@@ -128,7 +128,7 @@ def main():
     if args.url:
         print(make_http_request(args.url))
     elif args.search:
-        print(search_term(args.search))
+        print(format_related_topics(search_term(args.search)))
 
 if __name__ == "__main__":
     main() 
