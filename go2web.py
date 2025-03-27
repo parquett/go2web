@@ -67,6 +67,8 @@ def make_http_request(url, max_redirects=5):
     parsed_url = parse_url(url)
     host = parsed_url.netloc
     path = parsed_url.path or '/'
+    if parsed_url.query:
+        path += '?' + parsed_url.query
     port = 443 if parsed_url.scheme == 'https' else 80
 
     try:
@@ -111,8 +113,19 @@ def make_http_request(url, max_redirects=5):
         print(f"Error: {e}")
 
 def search_term(term):
-    search_url = f"duckduckgo.com/html/?q={term.replace(' ', '+')}"
+    search_url = f"https://api.duckduckgo.com/?q={term.replace(' ', '+')}&format=json"
     return make_http_request(search_url)
+
+
+def format_related_topics(search_result):
+    try:
+        matches = re.findall(r'"FirstURL"\s*:\s*"([^"]+)".*?"Text"\s*:\s*"([^"]+)"', search_result)
+        if matches:
+            for url, text in matches:
+                print(f'"{text}":"{url}"')
+
+    except Exception as e:
+        print(f"Error formatting topics: {e}")
 
 def main():
     parser = argparse.ArgumentParser(
