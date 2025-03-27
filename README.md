@@ -24,7 +24,7 @@ To make a request to a specific URL:
 python go2web.py -u https://example.com
 ```
 
-### Performing Web Searches![work](https://github.com/user-attachments/assets/e52c2ae6-5b55-4e7b-a06f-214bb22ab146)
+### Performing Web Searches
 
 
 To search the web using DuckDuckGo:
